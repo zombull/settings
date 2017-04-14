@@ -1,0 +1,13 @@
+[user]
+	name = Sean Christopherson
+	email = sean.j.c@gmail.com
+[branch]
+	autosetuprebase = always
+[core]
+	autocrlf = input
+	excludesfile = ~/Development/go/src/github.com/zombull/settings/git/.gitignore
+[push]
+	default = simple
+[diff]
+	renames = true
+	algorithm = patience
