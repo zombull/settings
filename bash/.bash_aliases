@@ -300,3 +300,11 @@ function extract() {
         fi
     fi
 }
+
+function system-info() {
+    printf "Kernel:\t\t       $(uname -spr)\n"
+    printf "Date:\t\t       $(date)\n"
+    printf "Uptime:\t\t      $(uptime)\n"
+    lscpu | grep -v Architecture | grep -v "Byte Order" | grep -v op-mode | grep -v BogoMIPS | grep -v Virtualization | grep -v Flags | grep -v On-line
+}
+alias si='system-info'
