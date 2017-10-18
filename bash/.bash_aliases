@@ -176,6 +176,11 @@ function lman {
 
 alias term='gnome-terminal &'
 
+# apt and dpkg
+alias apt='sudo apt'
+alias apt-get='sudo apt-get'
+alias ard='apt-cache rdepends --no-suggests --no-conflicts --no-breaks --no-replaces --no-enhances --installed --recurse'
+
 #
 function dpkg-query-size {
     dpkg-query -Wf '${Installed-Size}\t${Package}\n'
@@ -183,6 +188,7 @@ function dpkg-query-size {
 alias dq='dpkg-query-size'
 alias dqs='dq | sort -n'
 alias dg='dq | grep'
+alias di='sudo dpkg -i'
 
 function dpkg-purge {
     dpkg --list | grep "^rc" | cut -d " " -f 3 | xargs sudo dpkg --purge
