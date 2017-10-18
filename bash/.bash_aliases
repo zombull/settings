@@ -248,6 +248,9 @@ alias cd..="cd .."
 alias so='cd -P ~/Development/go/src'
 alias gh='cd -P ~/Development/go/src/github.com'
 
+# Direct navigation to misc directories
+alias dl='cd -P ~/Downloads'
+
 alias mkdir='mkdir -p'
 function mcd() {
     mkdir $1
