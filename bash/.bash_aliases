@@ -49,6 +49,43 @@ function git-apply() {
     git am --whitespace=fix ~/mutt/*.patch
 }
 
+function git-cherry-pick-ref() {
+    git status | grep "currently cherry-picking commit" | grep -o -E "[0-9a-f]{12}\b"
+}
+
+function git-cherry-pick-log() {
+    git log -1 $(git-cherry-pick-ref)
+}
+
+function git-cherry-pick-show() {
+    git show $(git-cherry-pick-ref)
+}
+
+function git-push-origin() {
+    local opts
+    local response=y
+    local branch=$(git rev-parse --abbrev-ref HEAD)
+    local exists=$(git ls-remote --heads origin $branch | wc -l)
+    if [[ $exists == "0" ]]; then
+        printf "\e[1;7;35mCreate and track remote branch origin/$branch? "
+        read -r -p "[Y/n] " response
+    elif [[ $exists != "1" ]]; then
+        printf "Found multiple ($exists) branches: $branch\n"
+        return 1
+    elif [[ $1 == "force" ]]; then
+        opts="-f"
+        git status
+        printf "\e[1;7;35mForce push remote branch origin/$branch? "
+        read -r -p "[Y/n] " response
+        printf "\e[0m"
+    fi
+    response=${response,,}    # tolower
+    if [[ -z $response || $response =~ ^(yes|y)$ ]]; then
+        git push $opts origin $branch
+        git branch --set-upstream-to=origin/$branch
+    fi
+}
+
 function git-url-patch() {
     # lynx -dump -nonumbers -hiddenlinks=liston $1 | grep -e "^http.*00(0[1-9]|1[0-7])\.patch" | xargs -n 1 curl -s | git am
     lynx -dump -nonumbers -hiddenlinks=liston $1 | grep -e "^http.*003[0-9].*\.patch" | xargs -n 1 curl -s | git am
@@ -77,14 +114,22 @@ alias ga='git-apply'
 alias gb='git branch'
 alias gc='git commit'
 alias gd='git-diff'
+alias gdd='git diff'
+alias gds='git diff --staged'
 alias ge='git send-email'
 alias gf='git fetch'
 alias gg='git checkout'
+alias ggd='gs | grep deleted: | cut -f 2 | tr -s " " | cut -f 2 -d " " | xargs git checkout'
 alias gk='git format-patch -o ~/patches/'
 alias gl='git log'
 alias glo='git log --pretty=oneline'
 alias gm="git status | grep modified | tr -d '\t' | tr -d ' ' | cut -f 2 -d :"
+alias gpo='git-push-origin'
+alias gfpo='git-push-origin force'
 alias gp='git cherry-pick'
+alias gpc='git cherry-pick --continue'
+alias gpl='git-cherry-pick-log'
+alias gps='git-cherry-pick-show'
 alias gr='git reset'
 alias grh='git reset HEAD'
 alias grhh='git reset HEAD --hard'
