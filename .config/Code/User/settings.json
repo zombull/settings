@@ -28,7 +28,9 @@
         "**/.DS_Store": true,
         "**/*.a": true,
         "**/*.o": true,
-        "**/*.so": true
+        "**/*.so": true,
+        "**/*.db": true,
+        "**/data/*.json": true
     },
     "files.watcherExclude": {
         "**/.vscode":true,
@@ -37,7 +39,9 @@
         "**/*.a": true,
         "**/*.o": true,
         "**/*.so": true,
-        "**/vendor": true
+        "**/vendor": true,
+        "**/*.db": true,
+        "**/data/*.json": true
     },
     "search.exclude": {
         "**/.vscode":true,
@@ -46,6 +50,8 @@
         "**/*.a": true,
         "**/*.o": true,
         "**/*.so": true,
-        "**/vendor": true
+        "**/vendor": true,
+        "**/*.db": true,
+        "**/data/*.json": true
     }
 }
