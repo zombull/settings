@@ -8,10 +8,10 @@
     "editor.dragAndDrop": false,
     "editor.minimap.enabled": true,
 
+    "files.autoSave": "off",
     "files.eol": "\n",  // The default end of line character.
     "diffEditor.ignoreTrimWhitespace": false,
 
-    "window.menuBarVisibility": "toggle",
     "window.newWindowDimensions": "maximized",
     "window.openFilesInNewWindow": "default",
     "window.restoreWindows": "all",
