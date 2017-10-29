@@ -11,7 +11,7 @@ export GOPATH=$HOME/Development/go
 
 # Add ~/bin, (repo)/bin, and GO bins to PATH
 if [[ $PATH != *"zombull/settings"* ]]; then
-    export PATH=$HOME/bin:$SETTINGS/bin:$HOME/go/bin:/usr/local/go/bin:$PATH
+    export PATH=$HOME/bin:$SETTINGS/bin:$HOME/Development/go/bin:/usr/local/go/bin:$PATH
 fi
 
 # If not running interactively, don't do anything

@@ -5,7 +5,11 @@ alias rf='source ~/.bashrc'
 # Floating Castle
 # -----------------------------------------------------------------------------
 alias ff='floating-castle'
-alias f3='floating-castle -s 3000'
+alias fs='ff serve'
+alias fs3='fs -p 3000'
+alias fsr='FC_SERVER=~/Development/go/src/github.com/zombull/floating-castle/server/release/fc fs -p 8080 -r'
+alias fs3u='fs3 -u'
+alias fm='ff moon'
 
 # -----------------------------------------------------------------------------
 # Git
@@ -120,7 +124,7 @@ __git_complete gr _git_reset
 __git_complete gs _git_log
 
 alias g='git'
-alias ga='git-apply'
+alias ga='git add'
 alias gb='git branch'
 alias gc='git commit'
 alias gd='git-diff'
