@@ -10,6 +10,22 @@ alias fs3='fs -p 3000'
 alias fu='ff cache -u'
 alias fm='ff moon'
 
+function floating-castle-gulp() {
+    pushd ~/Development/go/src/github.com/zombull/floating-castle/server > /dev/null
+    gulp
+    popd
+}
+alias fsg='floating-castle-gulp'
+
+function floating-castle-restart() {
+    pushd ~/Development/go/src/github.com/zombull/floating-castle > /dev/null
+    set -o xtrace
+    go install -v && cd server && gulp && systemctl restart fc
+    set +o xtrace
+    popd
+}
+alias fsr='floating-castle-restart'
+
 # -----------------------------------------------------------------------------
 # Git
 # -----------------------------------------------------------------------------
