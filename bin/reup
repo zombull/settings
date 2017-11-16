@@ -1,0 +1,15 @@
+#!/bin/bash
+dir=$(pwd)
+if [[ $HOSTNAME == "Hell" ]]; then
+    dir="${dir/\/c\/Users\/Sean/\~}"
+fi
+if [[ $# -eq 1 ]]; then
+    target=$1
+elif [[ "$HOSTNAME" == "Hell" ]]; then
+    target="do"
+else
+    printf "Must specify the target, no default for $HOSTNAME\n"
+    exit 1
+fi
+
+git diff --no-prefix | ssh $target "cd $dir ; git reset --hard HEAD ; patch -p0"
