@@ -7,8 +7,7 @@ alias rf='source ~/.bashrc'
 alias ff='floating-castle'
 alias fs='ff serve'
 alias fs3='fs -p 3000'
-alias fsr='FC_SERVER=~/Development/go/src/github.com/zombull/floating-castle/server/release/fc fs -p 8080 -r'
-alias fs3u='fs3 -u'
+alias fu='ff cache -u'
 alias fm='ff moon'
 
 # -----------------------------------------------------------------------------
