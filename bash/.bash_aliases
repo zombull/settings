@@ -70,8 +70,11 @@ function git-blob() {
 }
 
 function git-apply() {
-    git reset --hard $(printf "origin/$(git rev-parse --abbrev-ref HEAD)")
-    git am --whitespace=fix ~/mutt/*.patch
+    if [ $# -eq 0 ]; then
+        git am -3 ~/mutt/*.patch
+    else
+        git am -3 $1/*.patch
+    fi
 }
 
 function git-cherry-pick-ref() {
@@ -89,30 +92,56 @@ function git-cherry-pick-show() {
 function git-push() {
     local opts
     local response=y
-    local remote=$(git rev-parse --abbrev-ref --symbolic-full-name @{u} | cut -f 1 -d /)
+    local branch=$(git rev-parse --abbrev-ref HEAD)
+    local remote
+    local upstream
     if [[ $# -eq 1 && $1 != "force" ]]; then
         remote=$1
+        upstream=$branch
+    else
+        remote=$(git rev-parse --abbrev-ref --symbolic-full-name @{u} | cut -f 1 -d /)
+        if [[ $? -eq 0 ]]; then
+             upstream=$(git rev-parse --abbrev-ref --symbolic-full-name @{u} | cut -f 2- -d /)
+        else
+            printf "No remote configured or specified\n"
+            return 1
+        fi
     fi
-    local branch=$(git rev-parse --abbrev-ref HEAD)
-    local exists=$(git ls-remote --heads $remote $branch | wc -l)
+
+    local exists=$(git ls-remote --heads $remote $upstream | wc -l)
     if [[ $exists == "0" ]]; then
-        printf "\e[1;7;35mCreate and track remote branch $remote/$branch? "
+        printf "\e[1;7;35mCreate and track remote branch $remote/$upstream? "
         read -r -p "[Y/n] " response
     elif [[ $exists != "1" ]]; then
-        printf "Found multiple ($exists) branches: $branch\n"
+        printf "Found multiple ($exists) branches: $upstream\n"
         return 1
     elif [[ $1 == "force" ]]; then
         opts="-f"
         git status
-        printf "\e[1;7;35mForce push remote branch $remote/$branch? "
+        printf "\e[1;7;35mForce push $branch to $remote/$upstream? "
         read -r -p "[Y/n] " response
         printf "\e[0m"
     fi
     response=${response,,}    # tolower
     if [[ -z $response || $response =~ ^(yes|y)$ ]]; then
-        git push $opts $remote $branch
-        git branch --set-upstream-to=$remote/$branch
+        git push $opts $remote $branch:$upstream
+        git branch --set-upstream-to=$remote/$upstream
     fi
+}
+
+function git-get-branch() {
+    if [[ $# -eq 1 ]]; then
+        git checkout -b $1 origin/$1
+    elif [[ $# -eq 2 ]]; then
+        git checkout -b $1 $2
+    else
+        printf "git-get-branch <branch> [remote]\n"
+        return 1
+    fi
+}
+
+function git-get-prefixed-branch() {
+    git checkout $1/$2
 }
 
 function git-url-patch() {
@@ -125,13 +154,14 @@ function git-url-patch() {
 # Add git completion to aliases
 __git_complete g __git_main
 __git_complete gb _git_branch
+__git_complete ggb _git_branch
 
 __git_complete gc _git_commit
 __git_complete gd _git_diff
 __git_complete ge _git_send_email
 __git_complete gf _git_fetch
 __git_complete gg _git_checkout
-__git_complete gk _git_format_patch
+__git_complete gfp _git_format_patch
 __git_complete gl _git_log
 __git_complete glo _git_log
 __git_complete gp _git_cherry_pick
@@ -141,18 +171,26 @@ __git_complete gs _git_log
 alias g='git'
 alias ga='git add'
 alias gb='git branch'
+alias gbg='git branch -r | grep'
+alias gbgo='git branch -r | grep origin'
 alias gc='git commit'
 alias gd='git-diff'
 alias gdd='git diff'
 alias gds='git diff --staged'
-alias ge='git send-email'
+alias ge='git-email'
 alias gf='git fetch'
+alias gfo='git fetch origin'
+alias gfp='nosend=1 git-email'
+alias gft='git fetch --tags'
 alias gg='git checkout'
+alias ggb='git-get-branch'
 alias ggd='gs | grep deleted: | cut -f 2 | tr -s " " | cut -f 2 -d " " | xargs git checkout'
-alias gk='git format-patch -o ~/patches/'
-alias gl='git log'
-alias glo='git log --pretty=oneline'
+alias gl='git log --decorate'
+alias glo='git log --pretty=oneline --decorate'
 alias gm="git status | grep modified | tr -d '\t' | tr -d ' ' | cut -f 2 -d :"
+alias gw="git show -s --pretty='tformat:%h (%s, %ad)' --date=short"
+alias gwp="git show -s --pretty='tformat:%h, %s, %ad' --date=short"
+alias gpa='git-apply'
 alias gpu='git-push'
 alias gpo='git-push origin'
 alias gpf='git-push force'
@@ -165,9 +203,13 @@ alias grh='git reset HEAD'
 alias grhh='git reset HEAD --hard'
 alias grc='git rebase --continue'
 alias gri='git rebase --interactive'
+alias gu='git pull'
 alias gs='git status'
 alias gsa='git stash apply'
+alias gsdd='git stash drop'
 alias gsl='git stash list'
+alias gso='git stash show'
+alias gsop='git stash show -p'
 alias gsp='git stash pop'
 alias gss='git stash save'
 alias gt='git-tree'
@@ -187,8 +229,8 @@ function git-golint() {
     git diff-tree --no-commit-id --name-only -r $(git rev-parse --verify HEAD) | grep \\\.go | xargs -L 1 --no-run-if-empty golint
 }
 
-alias gi='go install -v'
-alias gu='go get -u -v ./...'
+alias goi='go install -v'
+alias gou='go get -u -v ./...'
 alias gof='git-gofmt'
 # Ignore comment, caps, ID and URL warnings
 alias gol='git-golint | grep -v -e "should have comment" -e ALL_CAPS -e Id -e Url'
@@ -196,7 +238,10 @@ alias gol='git-golint | grep -v -e "should have comment" -e ALL_CAPS -e Id -e Ur
 # -----------------------------------------------------------------------------
 # Utilities
 # -----------------------------------------------------------------------------
+alias ipa="ifconfig | grep 10.54 | tr -s ' ' | cut -f 3 -d ' ' | cut -f 2 -d :"
 alias sk='sudo -sE'
+alias sbn='sudo reboot now'
+alias sbf='sudo reboot -f'
 alias time='/usr/bin/time'
 alias ftime='time -f "REAL:\t\t%e\nSYSTEM\t\t%S\nUSER\t\t%U\nCPU:\t\t%P\nMAX_RSS:\t%M\nCTX_INV:\t%c\nCTX_VOL:\t%w\nIO_IN:\t\t%I\nIO_OUT:\t\t%O\nMAJ_PF:\t\t%F\nMIN_PF:\t\t%R\nSWAPS:\t\t%W"'
 
@@ -214,8 +259,11 @@ alias term='gnome-terminal &'
 
 # apt and dpkg
 alias apt='sudo apt'
-alias apt-get='sudo apt-get'
 alias ard='apt-cache rdepends --no-suggests --no-conflicts --no-breaks --no-replaces --no-enhances --installed --recurse'
+alias ai='sudo apt install'
+alias ad='sudo apt update'
+alias ap='sudo apt purge'
+alias au='sudo apt upgrade'
 
 #
 function dpkg-query-size {
@@ -225,6 +273,7 @@ alias dq='dpkg-query-size'
 alias dqs='dq | sort -n'
 alias dg='dq | grep'
 alias di='sudo dpkg -i'
+alias ds='dpkg -S'
 
 function dpkg-purge {
     dpkg --list | grep "^rc" | cut -d " " -f 3 | xargs sudo dpkg --purge
@@ -240,7 +289,7 @@ alias ports='netstat -tulanp'
 
 # ls
 alias ls='ls -aF --color=always'
-alias ll='ls -l'
+alias ll='ls -lh'
 
 # clear
 alias c='clear'
@@ -284,9 +333,23 @@ alias cd..="cd .."
 alias so='cd -P ~/Development/go/src'
 alias gh='cd -P ~/Development/go/src/github.com'
 alias zz='cd -P ~/Development/go/src/github.com/zombull'
+alias se='cd -P ~/Development/go/src/github.com/zombull/settings'
 
 # Direct navigation to misc directories
 alias dl='cd -P ~/Downloads'
+
+# Kernel grep and gdb commands
+alias gk='readelf -s vmlinux | grep'
+
+function gdb-disassemble() {
+    gdb -batch -ex "file $1" -ex "disassemble $2"
+}
+alias dis='gdb-disassemble'
+
+function gdb-kernel {
+    gdb-disassemble vmlinux $1
+}
+alias dk='gdb-kernel'
 
 alias mkdir='mkdir -p'
 function mcd() {
@@ -339,9 +402,16 @@ function extract() {
 }
 
 function system-info() {
-    printf "Kernel:\t\t       $(uname -spr)\n"
+    printf "IP Address:\t       $(ipa)\n"
+    printf "Kernel:\t\t       $(uname -r)\n"
+}
+alias si='system-info'
+
+function system-info-verbose() {
+    printf "IP Address:\t       $(ipa)\n"
+    printf "Kernel:\t\t       $(uname -r)\n"
     printf "Date:\t\t       $(date)\n"
     printf "Uptime:\t\t      $(uptime)\n"
     lscpu | grep -v Architecture | grep -v "Byte Order" | grep -v op-mode | grep -v BogoMIPS | grep -v Virtualization | grep -v Flags | grep -v On-line
 }
-alias si='system-info'
+alias siv='system-info-verbose'
