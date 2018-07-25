@@ -20,7 +20,10 @@ alias fsg='floating-castle-gulp'
 function floating-castle-restart() {
     pushd ~/Development/go/src/github.com/zombull/floating-castle > /dev/null
     set -o xtrace
-    go install -v && cd server && gulp && systemctl restart fc
+    go install -v && \
+    sudo cp /home/sean/Development/go/src/github.com/zombull/floating-castle/server/nginx/nginx.conf /etc/nginx/nginx.conf && \
+    cd server && gulp && \
+    systemctl restart fc
     set +o xtrace
     popd
 }
